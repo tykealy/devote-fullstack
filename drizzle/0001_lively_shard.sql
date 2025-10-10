@@ -1,0 +1,1 @@
+ALTER TABLE "poll_drafts" ADD COLUMN "media_uri" text;

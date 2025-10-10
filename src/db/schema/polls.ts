@@ -17,4 +17,4 @@ export const pollsTable = pgTable("polls", {
     index("idx_polls_status").on(table.status),
     index("idx_polls_end_ts").on(table.endTs),
     index("idx_polls_eligible_root").on(table.eligibleRoot)
-]);
+]); 
