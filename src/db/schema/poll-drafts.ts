@@ -13,6 +13,7 @@ import {
     createdBy: text("created_by").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+
     frozenAt: timestamp("frozen_at", { withTimezone: true }),
     publishedAt: timestamp("published_at", { withTimezone: true }),
   }, t => [
