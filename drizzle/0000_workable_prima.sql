@@ -62,6 +62,7 @@ CREATE TABLE "poll_drafts" (
 	"created_by" text NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"media_uri" text,
 	"frozen_at" timestamp with time zone,
 	"published_at" timestamp with time zone
 );
