@@ -13,7 +13,7 @@ import {
     createdBy: text("created_by").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
-
+    mediaUri: text("media_uri"), // media URI for the poll
     frozenAt: timestamp("frozen_at", { withTimezone: true }),
     publishedAt: timestamp("published_at", { withTimezone: true }),
   }, t => [
