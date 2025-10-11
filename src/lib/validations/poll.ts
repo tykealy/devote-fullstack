@@ -18,6 +18,8 @@ export const pollDraftSchema = z.object({
     .max(1000, 'Description must be 1000 characters or less')
     .optional(),
   
+  mediaUri: z.string().nullable(),
+  
   optionsJson: z.array(pollOptionSchema)
     .min(2, 'Poll must have at least 2 options')
     .max(10, 'Poll can have at most 10 options')
@@ -47,6 +49,7 @@ export const pollDraftSchema = z.object({
 export const pollFormSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200),
   description: z.string().max(1000).optional(),
+  mediaUri: z.string().nullable(),
   options: z.array(pollOptionSchema).min(2).max(10),
   startDate: z.string().min(1, 'Start date is required'),
   startTime: z.string().min(1, 'Start time is required'),
@@ -92,6 +95,7 @@ export function formDataToPollDraft(formData: PollFormData, createdBy: string): 
   return {
     title: formData.title,
     description: formData.description || undefined,
+    mediaUri: formData.mediaUri || null,
     optionsJson: formData.options.map(({ idx, label, description, mediaUri }) => ({
       idx,
       label,

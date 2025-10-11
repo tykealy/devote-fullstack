@@ -2,6 +2,7 @@
 
 import { PollFormData } from '@/lib/validations/poll';
 import { FormField, Input, Textarea } from './FormField';
+import { PollImageUpload } from './PollImageUpload';
 
 interface BasicInfoSectionProps {
   formData: PollFormData;
@@ -50,6 +51,15 @@ export function BasicInfoSection({ formData, errors, onUpdate }: BasicInfoSectio
               {formData.description?.length || 0}/1000
             </div>
           </div>
+        </FormField>
+
+        {/* Media Upload */}
+        <FormField label="Poll Image (Optional)">
+          <PollImageUpload
+            currentImage={formData.mediaUri}
+            onImageChange={(url) => onUpdate('mediaUri', url)}
+            onImageRemove={() => onUpdate('mediaUri', '')}
+          />
         </FormField>
       </div>
     </div>

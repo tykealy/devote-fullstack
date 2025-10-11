@@ -6,6 +6,7 @@ import { PollFormData, PollOption, validateTimestamps } from '@/lib/validations/
 const initialFormData: PollFormData = {
   title: '',
   description: '',
+  mediaUri: '',
   options: [
     { idx: 0, label: '', description: '' },
     { idx: 1, label: '', description: '' },
