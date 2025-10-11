@@ -16,10 +16,16 @@ export function VotingTimelineSection({ formData, errors, onUpdate }: VotingTime
   const [showStartCalendar, setShowStartCalendar] = useState(false);
   const [showEndCalendar, setShowEndCalendar] = useState(false);
   const [selectedStartDate, setSelectedStartDate] = useState<Date | undefined>(
-    formData.startDate ? new Date(formData.startDate) : undefined
+    formData.startDate ? (() => {
+      const [year, month, day] = formData.startDate.split('-').map(Number);
+      return new Date(year, month - 1, day);
+    })() : undefined
   );
   const [selectedEndDate, setSelectedEndDate] = useState<Date | undefined>(
-    formData.endDate ? new Date(formData.endDate) : undefined
+    formData.endDate ? (() => {
+      const [year, month, day] = formData.endDate.split('-').map(Number);
+      return new Date(year, month - 1, day);
+    })() : undefined
   );
   
   const startCalendarRef = useRef<HTMLDivElement>(null);
@@ -72,7 +78,11 @@ export function VotingTimelineSection({ formData, errors, onUpdate }: VotingTime
 
   const handleStartDateSelect = (date: Date | undefined) => {
     if (date) {
-      const dateString = date.toISOString().split('T')[0];
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const dateString = `${year}-${month}-${day}`;
+      
       setSelectedStartDate(date);
       onUpdate('startDate', dateString);
       setShowStartCalendar(false);
@@ -81,7 +91,11 @@ export function VotingTimelineSection({ formData, errors, onUpdate }: VotingTime
 
   const handleEndDateSelect = (date: Date | undefined) => {
     if (date) {
-      const dateString = date.toISOString().split('T')[0];
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const dateString = `${year}-${month}-${day}`;
+      
       setSelectedEndDate(date);
       onUpdate('endDate', dateString);
       setShowEndCalendar(false);
@@ -129,7 +143,11 @@ export function VotingTimelineSection({ formData, errors, onUpdate }: VotingTime
                       mode="single"
                       selected={selectedStartDate}
                       onSelect={handleStartDateSelect}
-                      disabled={(date) => date < new Date()}
+                      disabled={(date) => {
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        return date < today;
+                      }}
                     />
                   </div>
                 )}

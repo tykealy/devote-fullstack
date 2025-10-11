@@ -23,8 +23,7 @@ export default function CreatePollPage() {
     canSaveDraft,
   } = usePollForm();
 
-  // Mock wallet - replace with wagmi useAccount()
-  const connectedWallet = '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb';
+  const connectedWallet = '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0'; 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,26 +37,16 @@ export default function CreatePollPage() {
     try {
       const pollDraft = formDataToPollDraft(formData, connectedWallet);
       
-      console.log('Creating poll draft:', pollDraft);
+      const response = await fetch('/api/admin/polls', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(pollDraft),
+      });
+      
+      resetForm();    
 
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/admin/polls', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(pollDraft),
-      // });
-
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Success - redirect to dashboard
-      alert('Poll draft created successfully!');
-      resetForm();
-      // router.push('/dashboard');
     } catch (error) {
       console.error('Error creating poll:', error);
-      // In a real app, you'd show a toast notification
-      alert('Failed to create poll. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -68,22 +57,27 @@ export default function CreatePollPage() {
 
     setIsSubmitting(true);
     try {
-      console.log('Saving draft...', formData);
-      
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/admin/polls/draft', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ ...formData, createdBy: connectedWallet }),
-      // });
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      alert('Draft saved successfully!');
+      const response = await fetch('/api/admin/polls/draft', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...formData, createdBy: connectedWallet }),
+      });
+
+      if (response.ok) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Draft saved successfully!');
+        }
+        resetForm();
+      } else {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Failed to save draft. Please try again.');
+        }
+      }      
     } catch (error) {
-      console.error('Error saving draft:', error);
-      alert('Failed to save draft. Please try again.');
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error saving draft:', error);
+      }
     } finally {
       setIsSubmitting(false);
     }
