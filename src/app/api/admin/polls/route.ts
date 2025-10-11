@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { pollDraftSchema } from '@/lib/validations/poll';
-import { db } from '@/db';
 import { pollDraftsTable } from '@/db/schema/poll-drafts';
 import { eq, desc } from 'drizzle-orm';
+import { db } from '@/db';
 
 export async function POST(request: NextRequest) {
   try {
@@ -66,13 +66,11 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const createdBy = searchParams.get('createdBy');
     
-    let query = db.select().from(pollDraftsTable);
-    
-    if (createdBy) {
-      query = query.where(eq(pollDraftsTable.createdBy, createdBy));
-    }
-    
-    const polls = await query.orderBy(desc(pollDraftsTable.createdAt));
+    const polls = await db
+      .select()
+      .from(pollDraftsTable)
+      .where(createdBy ? eq(pollDraftsTable.createdBy, createdBy) : undefined)
+      .orderBy(desc(pollDraftsTable.createdAt));
     
     return NextResponse.json({ 
       success: true, 

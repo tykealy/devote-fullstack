@@ -59,10 +59,35 @@ export type PollOption = z.infer<typeof pollOptionSchema>;
 export type PollDraft = z.infer<typeof pollDraftSchema>;
 export type PollFormData = z.infer<typeof pollFormSchema>;
 
+// Helper function to parse date/time strings and convert to UTC timestamps
+function parseDateTimeToTimestamps(startDate: string, startTime: string, endDate: string, endTime: string) {
+  // Parse the date and time strings
+  const [startYear, startMonth, startDay] = startDate.split('-').map(Number);
+  const [startHour, startMinute] = startTime.split(':').map(Number);
+  
+  const [endYear, endMonth, endDay] = endDate.split('-').map(Number);
+  const [endHour, endMinute] = endTime.split(':').map(Number);
+  
+  // Create Date objects explicitly as local time
+  // Note: Month is 0-indexed in JavaScript Date
+  const startDateObj = new Date(startYear, startMonth - 1, startDay, startHour, startMinute, 0);
+  const endDateObj = new Date(endYear, endMonth - 1, endDay, endHour, endMinute, 0);
+  
+  // Convert to UTC timestamps in seconds
+  const startTs = Math.floor(startDateObj.getTime() / 1000);
+  const endTs = Math.floor(endDateObj.getTime() / 1000);
+  
+  return { startTs, endTs };
+}
+
 // Helper function to convert form data to poll draft
 export function formDataToPollDraft(formData: PollFormData, createdBy: string): PollDraft {
-  const startTs = Math.floor(new Date(`${formData.startDate}T${formData.startTime}`).getTime() / 1000);
-  const endTs = Math.floor(new Date(`${formData.endDate}T${formData.endTime}`).getTime() / 1000);
+  const { startTs, endTs } = parseDateTimeToTimestamps(
+    formData.startDate,
+    formData.startTime,
+    formData.endDate,
+    formData.endTime
+  );
 
   return {
     title: formData.title,
@@ -93,8 +118,7 @@ export function validateTimestamps(startDate: string, startTime: string, endDate
     return errors;
   }
 
-  const startTs = Math.floor(new Date(`${startDate}T${startTime}`).getTime() / 1000);
-  const endTs = Math.floor(new Date(`${endDate}T${endTime}`).getTime() / 1000);
+  const { startTs, endTs } = parseDateTimeToTimestamps(startDate, startTime, endDate, endTime);
   const nowTs = Math.floor(Date.now() / 1000);
 
   if (startTs < nowTs) {
