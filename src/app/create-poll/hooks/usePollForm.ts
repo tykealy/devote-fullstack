@@ -3,6 +3,12 @@
 import { useState, useCallback } from 'react';
 import { PollFormData, PollOption, validateTimestamps } from '@/lib/validations/poll';
 
+// Add this interface to track pending uploads
+interface PendingUploads {
+  pollImage?: File;
+  optionImages: Map<number, File>; // Map of optionIdx -> File
+}
+
 const initialFormData: PollFormData = {
   title: '',
   description: '',
@@ -17,10 +23,20 @@ const initialFormData: PollFormData = {
   endTime: '',
 };
 
+interface PendingUploads {
+  pollImage?: File;
+  optionImages: Map<number, File>;
+}
+
 export function usePollForm() {
   const [formData, setFormData] = useState<PollFormData>(initialFormData);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Store actual File objects for upload later
+  const [pendingUploads, setPendingUploads] = useState<PendingUploads>({
+    optionImages: new Map(),
+  });
 
   const updateField = useCallback((field: keyof PollFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -34,6 +50,36 @@ export function usePollForm() {
       });
     }
   }, [errors]);
+
+  // New: Store poll image file
+  const setPollImageFile = useCallback((file: File | null, previewUrl: string) => {
+    setPendingUploads(prev => ({
+      ...prev,
+      pollImage: file || undefined,
+    }));
+    setFormData(prev => ({ ...prev, mediaUri: previewUrl }));
+  }, []);
+
+  // New: Store option image file
+  const setOptionImageFile = useCallback((optionIdx: number, file: File | null, previewUrl: string) => {
+    setPendingUploads(prev => {
+      const newMap = new Map(prev.optionImages);
+      if (file) {
+        newMap.set(optionIdx, file);
+      } else {
+        newMap.delete(optionIdx);
+      }
+      return { ...prev, optionImages: newMap };
+    });
+
+    // Update the option's mediaUri with preview URL
+    setFormData(prev => ({
+      ...prev,
+      options: prev.options.map(opt =>
+        opt.idx === optionIdx ? { ...opt, mediaUri: previewUrl } : opt
+      ),
+    }));
+  }, []);
 
   const updateOptions = useCallback((options: PollOption[]) => {
     setFormData(prev => ({ ...prev, options }));
@@ -86,11 +132,23 @@ export function usePollForm() {
     return Object.keys(newErrors).length === 0;
   }, [formData]);
 
+
   const resetForm = useCallback(() => {
+    // Revoke all blob URLs before resetting
+    if (formData.mediaUri?.startsWith('blob:')) {
+      URL.revokeObjectURL(formData.mediaUri);
+    }
+    formData.options.forEach(opt => {
+      if (opt.mediaUri?.startsWith('blob:')) {
+        URL.revokeObjectURL(opt.mediaUri);
+      }
+    });
+
     setFormData(initialFormData);
+    setPendingUploads({ optionImages: new Map() });
     setErrors({});
     setIsSubmitting(false);
-  }, []);
+  }, [formData]);
 
   const canSaveDraft = useCallback(() => {
     return formData.title.trim().length > 0;
@@ -106,5 +164,9 @@ export function usePollForm() {
     validateForm,
     resetForm,
     canSaveDraft: canSaveDraft(),
+    // Image handling exports
+    setPollImageFile,
+    setOptionImageFile,
+    pendingUploads,
   };
 }

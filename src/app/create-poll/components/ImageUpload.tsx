@@ -5,13 +5,12 @@ import { useState, useRef } from 'react';
 interface ImageUploadProps {
   optionIdx: number;
   currentImage?: string;
-  onImageChange: (url: string) => void;
-  onImageRemove: () => void;
+  onImageChange: (file: File | null, previewUrl: string) => void; // Changed signature
 }
 
-export function ImageUpload({ optionIdx, currentImage, onImageChange, onImageRemove }: ImageUploadProps) {
+export function ImageUpload({ optionIdx, currentImage, onImageChange }: ImageUploadProps) {
   const [isDragOver, setIsDragOver] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = async (file: File) => {
@@ -29,22 +28,18 @@ export function ImageUpload({ optionIdx, currentImage, onImageChange, onImageRem
       return;
     }
 
-    setIsUploading(true);
+    setIsProcessing(true);
 
     try {
       // Create object URL for immediate preview
-      const url = URL.createObjectURL(file);
-      onImageChange(url);
-
-      // TODO: In production, upload to IPFS or cloud storage
-      // const uploadedUrl = await uploadToIPFS(file);
-      // onImageChange(uploadedUrl);
+      const previewUrl = URL.createObjectURL(file);
+      onImageChange(file, previewUrl);
       
     } catch (error) {
-      console.error('Error uploading image:', error);
-      alert('Failed to upload image. Please try again.');
+      console.error('Error processing image:', error);
+      alert('Failed to process image. Please try again.');
     } finally {
-      setIsUploading(false);
+      setIsProcessing(false);
     }
   };
 
@@ -72,6 +67,14 @@ export function ImageUpload({ optionIdx, currentImage, onImageChange, onImageRem
     fileInputRef.current?.click();
   };
 
+  const handleRemove = () => {
+    // Revoke object URL before removing
+    if (currentImage && currentImage.startsWith('blob:')) {
+      URL.revokeObjectURL(currentImage);
+    }
+    onImageChange(null, '');
+  };
+
   if (currentImage) {
     return (
       <div className="relative">
@@ -87,7 +90,7 @@ export function ImageUpload({ optionIdx, currentImage, onImageChange, onImageRem
         <button
           type="button"
           className="absolute -top-1 -right-1 btn btn-xs btn-circle btn-error shadow-lg"
-          onClick={onImageRemove}
+          onClick={handleRemove}
           title="Remove image"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -126,14 +129,14 @@ export function ImageUpload({ optionIdx, currentImage, onImageChange, onImageRem
           isDragOver
             ? 'border-primary bg-primary/5'
             : 'border-base-300 hover:border-primary/50 hover:bg-base-50'
-        } ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
+        } ${isProcessing ? 'opacity-50 pointer-events-none' : ''}`}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onClick={handleClick}
       >
         <div className="flex flex-col items-center gap-2 p-2">
-          {isUploading ? (
+          {isProcessing ? (
             <span className="loading loading-spinner loading-sm text-primary"></span>
           ) : (
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-base-content/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -143,7 +146,7 @@ export function ImageUpload({ optionIdx, currentImage, onImageChange, onImageRem
           
           <div className="text-center">
             <p className="text-xs font-medium text-base-content/70">
-              {isUploading ? 'Uploading...' : 'Upload'}
+              {isProcessing ? 'Processing...' : 'Upload'}
             </p>
           </div>
         </div>

@@ -8,9 +8,10 @@ interface PollOptionsSectionProps {
   formData: PollFormData;
   errors: Record<string, string>;
   onUpdateOptions: (options: PollOption[]) => void;
+  onImageChange: (optionIdx: number, file: File | null, previewUrl: string) => void;
 }
 
-export function PollOptionsSection({ formData, errors, onUpdateOptions }: PollOptionsSectionProps) {
+export function PollOptionsSection({ formData, errors, onUpdateOptions, onImageChange }: PollOptionsSectionProps) {
   const addOption = () => {
     if (formData.options.length >= 10) return;
     
@@ -80,8 +81,7 @@ export function PollOptionsSection({ formData, errors, onUpdateOptions }: PollOp
                         <ImageUpload
                           optionIdx={option.idx}
                           currentImage={option.mediaUri}
-                          onImageChange={(url) => updateOption(option.idx, 'mediaUri', url)}
-                          onImageRemove={() => updateOption(option.idx, 'mediaUri', '')}
+                          onImageChange={(file, previewUrl) => onImageChange(option.idx, file, previewUrl)}
                         />
                       </FormField>
                     </div>
