@@ -15,6 +15,7 @@
     "db:pull": "drizzle-kit pull"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.75.0",
     "daisyui": "^5.1.25",
     "dotenv": "^17.2.2",
     "drizzle-orm": "^0.44.5",

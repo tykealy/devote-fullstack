@@ -4,13 +4,12 @@ import { useState, useRef, useEffect } from 'react';
 
 interface PollImageUploadProps {
   currentImage?: string;
-  onImageChange: (url: string) => void;
-  onImageRemove: () => void;
+  onImageChange: (file: File | null, previewUrl: string) => void; // Changed signature
 }
 
-export function PollImageUpload({ currentImage, onImageChange, onImageRemove }: PollImageUploadProps) {
+export function PollImageUpload({ currentImage, onImageChange }: PollImageUploadProps) {
   const [isDragOver, setIsDragOver] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Cleanup object URL when component unmounts or image changes
@@ -41,7 +40,7 @@ export function PollImageUpload({ currentImage, onImageChange, onImageRemove }: 
       return;
     }
 
-    setIsUploading(true);
+    setIsProcessing(true);
 
     try {
       // Revoke previous object URL if it exists
@@ -50,19 +49,17 @@ export function PollImageUpload({ currentImage, onImageChange, onImageRemove }: 
       }
 
       // Create object URL for immediate preview
-      const url = URL.createObjectURL(file);
-      onImageChange(url);
-
-      // TODO: In production, upload to IPFS or cloud storage
-      // const uploadedUrl = await uploadToIPFS(file);
-      // onImageChange(uploadedUrl);
+      const previewUrl = URL.createObjectURL(file);
+      
+      // Pass both the File object and preview URL to parent
+      onImageChange(file, previewUrl);
       
     } catch (error) {
       if(process.env.NODE_ENV === 'development') {
-        console.log('Failed to upload image. Please try again.');
+        console.log('Failed to process image. Please try again.');
       }
     } finally {
-      setIsUploading(false);
+      setIsProcessing(false);
     }
   };
 
@@ -71,7 +68,7 @@ export function PollImageUpload({ currentImage, onImageChange, onImageRemove }: 
     if (currentImage && currentImage.startsWith('blob:')) {
       URL.revokeObjectURL(currentImage);
     }
-    onImageRemove();
+    onImageChange(null, '');
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -151,14 +148,14 @@ export function PollImageUpload({ currentImage, onImageChange, onImageRemove }: 
           isDragOver
             ? 'border-primary bg-primary/5'
             : 'border-base-300 hover:border-primary/50 hover:bg-base-50'
-        } ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
+        } ${isProcessing ? 'opacity-50 pointer-events-none' : ''}`}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onClick={handleClick}
       >
         <div className="flex flex-col items-center gap-3 p-4">
-          {isUploading ? (
+          {isProcessing ? (
             <span className="loading loading-spinner loading-md text-primary"></span>
           ) : (
             <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-base-content/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -168,7 +165,7 @@ export function PollImageUpload({ currentImage, onImageChange, onImageRemove }: 
           
           <div className="text-center">
             <p className="text-sm font-medium text-base-content/70">
-              {isUploading ? 'Uploading...' : 'Click to upload or drag and drop'}
+              {isProcessing ? 'Processing...' : 'Click to upload or drag and drop'}
             </p>
             <p className="text-xs text-base-content/50 mt-1">
               PNG, JPG, GIF up to 5MB

@@ -8,9 +8,10 @@ interface BasicInfoSectionProps {
   formData: PollFormData;
   errors: Record<string, string>;
   onUpdate: (field: keyof PollFormData, value: string) => void;
+  onImageChange: (file: File | null, previewUrl: string) => void;
 }
 
-export function BasicInfoSection({ formData, errors, onUpdate }: BasicInfoSectionProps) {
+export function BasicInfoSection({ formData, errors, onUpdate, onImageChange }: BasicInfoSectionProps) {
   return (
     <div className="card bg-base-200 shadow-xl">
       <div className="card-body">
@@ -56,9 +57,8 @@ export function BasicInfoSection({ formData, errors, onUpdate }: BasicInfoSectio
         {/* Media Upload */}
         <FormField label="Poll Image (Optional)">
           <PollImageUpload
-            currentImage={formData.mediaUri}
-            onImageChange={(url) => onUpdate('mediaUri', url)}
-            onImageRemove={() => onUpdate('mediaUri', '')}
+            currentImage={formData.mediaUri || undefined}
+            onImageChange={onImageChange}
           />
         </FormField>
       </div>
